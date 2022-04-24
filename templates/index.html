@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block head %}
+{% endblock %}
+
+{% block body %}
+    <h2>In Index</h2>
+    {#    <button type="button" class="btn btn-primary">Primary</button>#}
+    {#   checking for Boostrap. Working Fine! #}
+
+     {% for post in data %}
+        <div class='post'>
+            <p>{{ post['created'] }}</p>
+            <h2>{{ post['title'] }}</h2>
+            <p>{{ post['content'] }}</p>
+        </div>
+    {% endfor %}
+
+
+{% endblock %}

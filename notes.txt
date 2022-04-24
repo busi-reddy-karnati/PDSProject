@@ -1,1 +1,26 @@
 python version 3.10.1
+
+//Command for running the flask app
+C:\Users\busis\PycharmProjects\PDSProject\venv\Scripts\python.exe -m flask run
+(or) run from the appy.py
+
+
+pip install flask_mysqldb to use mysql
+
+cursor.execute(''' INSERT INTO info_table VALUES(%s,%s)''',(name,age)) To execute SQL with args
+
+{{}} this will take anything and print a string instead of that. Write python code in that
+Rerun after every change
+
+static:
+        <link rel="stylesheet" href="{{ url_for('static',filename='css/main.css') }}">
+        Keep this in the base for stylesheet linking
+
+
+templates:
+        contains all the html files for use.
+        Template inheritance: Make a master page and use that in every page
+
+
+
+Database, we are using SQLlite. That is because of the support by python
