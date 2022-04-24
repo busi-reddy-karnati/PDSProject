@@ -24,3 +24,4 @@ templates:
 
 
 Database, we are using SQLlite. That is because of the support by python
+run init_db.py for starting the database and creating initial tables
