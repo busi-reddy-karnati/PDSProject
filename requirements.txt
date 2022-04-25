@@ -17,3 +17,4 @@ Werkzeug==2.1.1
 WTForms==3.0.1
 
 SQLAlchemy~=1.4.35
+bcrypt~=3.2.0

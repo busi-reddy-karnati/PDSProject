@@ -2,6 +2,8 @@ import sqlite3
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 
+from bcrypt import hashpw, checkpw, gensalt
+
 # Bootstrap for the app
 from flask_bootstrap import Bootstrap
 
@@ -135,24 +137,35 @@ def signup():
     form = SignupForm()
     if form.validate_on_submit():
         new_user = Users()
-        new_user.username = form.username
-        new_user.firstname = form.firstname
-        new_user.lastname = form.lastname
-        new_user.email = form.email
-        new_user.phone = form.phone
-        new_user.profile = form.profile
-        new_user.city = form.city
-        new_user.state = form.state
-        new_user.country = form.country
-        db.session.add(new_user)
-        db.session.commit()
+        new_user.username = form.username.data
+        new_user.firstname = form.firstname.data
+        new_user.lastname = form.lastname.data
+        new_user.email = form.email.data
+        new_user.phone = form.phone.data
+        new_user.profile = form.profile.data
+        new_user.city = form.city.data
+        new_user.state = form.state.data
+        new_user.country = form.country.data
         result = db.engine.execute("select max(userid) from users")
-        print(result)
+        userid = 0
+        if not result.first()[0]:
+            userid = 1
+        else:
+            userid = result.first()[0]+1
+
         new_user_login_details = LoginDetails()
-        new_user_login_details.userid = result
-        new_user_login_details.username = form.username
-        # new_user_login_details.passwordhash =
+        new_user_login_details.userid = userid
+        new_user_login_details.username = form.username.data
+        password = form.password.data
+        password_hash = hashpw(password.encode('utf-8'), gensalt())
+        new_user_login_details.passwordhash = password_hash
+
+        # todo: commit the login details when doing for user table
+        # todo: See if the hash is working fine
+        # Verifying? Boolean: checkpw(password.encode('utf-8'), hashedpasswd)
         # todo: generate password hash, write method for verifying the passwords with hashes
+
+        db.session.add(new_user)
         db.session.add(new_user_login_details)
         db.session.commit()
         # todo: Enclose this in a try-except block
@@ -164,3 +177,8 @@ def signup():
 if __name__ == '__main__':
     # Base.metadata.create_all(engine)
     app.run(debug=True)
+
+
+
+
+#
