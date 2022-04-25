@@ -35,14 +35,16 @@ class LoginForm(FlaskForm):
 
 
 class SignupForm(FlaskForm):
-    username = StringField('username', validators=[InputRequired()])
-    password = PasswordField('password', validators=[InputRequired(), Length(min=5, max=80)])
-    firstname = StringField('firstname', validators=[InputRequired()])
-    lastname = StringField('lastname', validators=[InputRequired()])
-    email = StringField('email', validators=[InputRequired(), Email(message='Invalid Email')])
-    phone = StringField('phone', validators=[InputRequired()])
-    profile = StringField('profile', validators=[InputRequired()])
-    city = StringField('city', validators=[InputRequired()])
+    username = StringField('Username', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired(), Length(min=5, max=80)])
+    firstname = StringField('First Name', validators=[InputRequired()])
+    lastname = StringField('Last Name', validators=[InputRequired()])
+    email = StringField('Email', validators=[InputRequired(), Email(message='Invalid Email')])
+    phone = StringField('Phone', validators=[InputRequired()])
+    profile = StringField('Profile(A short Description)', validators=[InputRequired()])
+    city = StringField('City', validators=[InputRequired()])
+    state = StringField('State', validators=[InputRequired()])
+    country = StringField('Country', validators=[InputRequired()])
 
 
 class Users(db.Model):
@@ -53,6 +55,7 @@ class Users(db.Model):
     lastname = db.Column(db.String)
     email = db.Column(db.String)
     phone = db.Column(db.String)
+    profile = db.Column(db.Text)
     rating = db.Column(db.Integer, default=0)
     city = db.Column(db.String)
     state = db.Column(db.String)
@@ -131,6 +134,29 @@ def login():
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
+        new_user = Users()
+        new_user.username = form.username
+        new_user.firstname = form.firstname
+        new_user.lastname = form.lastname
+        new_user.email = form.email
+        new_user.phone = form.phone
+        new_user.profile = form.profile
+        new_user.city = form.city
+        new_user.state = form.state
+        new_user.country = form.country
+        db.session.add(new_user)
+        db.session.commit()
+        result = db.engine.execute("select max(userid) from users")
+        print(result)
+        new_user_login_details = LoginDetails()
+        new_user_login_details.userid = result
+        new_user_login_details.username = form.username
+        # new_user_login_details.passwordhash =
+        # todo: generate password hash, write method for verifying the passwords with hashes
+        db.session.add(new_user_login_details)
+        db.session.commit()
+        # todo: Enclose this in a try-except block
+
         return '<h1>' + form.username.data + form.firstname.data + '</h1>'
     return render_template('signup.html', form=form)
 
