@@ -26,4 +26,13 @@ templates:
 Database, we are using SQLlite. That is because of the support by python
 run init_db.py for starting the database and creating initial tables
 
+To Create tables:
+python:
+from app import db
+db. create_all()
+exit()
+To check:
+sqlite3 database.db
+.tables
+
 last_insert_rowid() to get the value auto incremented and inserted for inserting into logindetails table
