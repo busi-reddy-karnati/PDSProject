@@ -27,6 +27,7 @@ Base = declarative_base()
 
 engine = create_engine('sqlite:///database.db')
 
+
 class LoginForm(FlaskForm):
     username = StringField('username', validators=[InputRequired()])
     password = PasswordField('password', validators=[InputRequired(), Length(min=5, max=80)])
@@ -44,8 +45,8 @@ class SignupForm(FlaskForm):
     city = StringField('city', validators=[InputRequired()])
 
 
-class Users(Base):
-    __tablename__ = 'users'
+class Users(db.Model):
+    # __tablename__ = 'users'
     userid = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String, unique=True)
     firstname = db.Column(db.String)
@@ -58,22 +59,22 @@ class Users(Base):
     country = db.Column(db.String)
 
 
-class Tags(Base):
-    __tablename__ = 'tags'
+class Tags(db.Model):
+    # __tablename__ = 'tags'
     tagid = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tagname = db.Column(db.String)
     parenttagid = db.Column(db.Integer)
 
 
-class LoginDetails(Base):
-    __tablename__ = 'logindetails'
+class LoginDetails(db.Model):
+    # __tablename__ = 'logindetails'
     userid = db.Column(db.Integer, ForeignKey(Users.userid), primary_key=True)
     username = db.Column(db.Integer, ForeignKey(Users.userid), primary_key=True)
     passwordhash = db.Column(db.String(128))
 
 
-class Questions(Base):
-    __tablename__ = 'questions'
+class Questions(db.Model):
+    # __tablename__ = 'questions'
     questionid = db.Column(db.Integer, autoincrement=True, primary_key=True)
     userid = db.Column(db.Integer, ForeignKey(Users.userid))
     tagid = db.Column(db.Integer, ForeignKey(Tags.tagid))
@@ -83,8 +84,8 @@ class Questions(Base):
     resolved = db.Column(db.Boolean, default=False)
 
 
-class Answers(Base):
-    __tablename__ = 'answers'
+class Answers(db.Model):
+    # __tablename__ = 'answers'
     answerid = db.Column(db.Integer, autoincrement=True, primary_key=True)
     userid = db.Column(db.Integer, ForeignKey(Users.userid))
     questionid = db.Column(db.Integer, ForeignKey(Questions.questionid))
@@ -94,14 +95,14 @@ class Answers(Base):
     bestanswer = db.Column(db.Boolean, default=False)
 
 
-class Upvotes(Base):
-    __tablename__ = 'upvotes'
+class Upvotes(db.Model):
+    # __tablename__ = 'upvotes'
     userid = db.Column(db.Integer, ForeignKey(Users.userid), primary_key=True)
     answerid = db.Column(db.Integer, ForeignKey(Answers.answerid), primary_key=True)
 
 
-class Downvotes(Base):
-    __tablename__ = 'downvotes'
+class Downvotes(db.Model):
+    # __tablename__ = 'downvotes'
     userid = db.Column(db.Integer, ForeignKey(Users.userid), primary_key=True)
     answerid = db.Column(db.Integer, ForeignKey(Answers.answerid), primary_key=True)
 
