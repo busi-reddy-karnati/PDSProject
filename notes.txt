@@ -25,3 +25,5 @@ templates:
 
 Database, we are using SQLlite. That is because of the support by python
 run init_db.py for starting the database and creating initial tables
+
+last_insert_rowid() to get the value auto incremented and inserted for inserting into logindetails table
