@@ -27,7 +27,7 @@ db = database
 Base = declarative_base()
 
 
-engine = create_engine('sqlite:///database.db')
+# engine = create_engine('sqlite:///database.db')
 
 
 class LoginForm(FlaskForm):
@@ -116,6 +116,8 @@ class Downvotes(db.Model):
 @app.route('/')
 def hello_world():
     return render_template('index.html')
+
+
 #     It knows where to find the templates
 
 
@@ -127,8 +129,15 @@ def login():
 
     # If the form is submitted correctly
     if form.validate_on_submit():
-        # This is when the form is submitted correctly
-        return '<h1>' + form.username.data + " " + form.password.data + '</h1>'
+        user = LoginDetails.query.filter_by(username=form.username.data).first()
+        if user:
+            password = form.password.data
+            if checkpw(password.encode('utf-8'), user.passwordhash):
+                # If the password hashes match
+                return '<h1>' + "Correct and Matching" + '</h1>'
+        # If the hashes don't match or incorrect password
+        return '<h1> Incorrect </h1>'
+
     return render_template('login.html', form=form)
 
 
@@ -146,13 +155,14 @@ def signup():
         new_user.city = form.city.data
         new_user.state = form.state.data
         new_user.country = form.country.data
-        result = db.engine.execute("select max(userid) from users")
+        # result = list(db.engine.execute("select max(userid) from users"))
         userid = 0
-        if not result.first()[0]:
-            userid = 1
+        result = db.session.execute('select max(userid) from users').fetchall()
+        if not result:
+            result = 0
         else:
-            userid = result.first()[0]+1
-
+            result = result[0][0]
+        userid = result + 1
         new_user_login_details = LoginDetails()
         new_user_login_details.userid = userid
         new_user_login_details.username = form.username.data
@@ -177,8 +187,5 @@ def signup():
 if __name__ == '__main__':
     # Base.metadata.create_all(engine)
     app.run(debug=True)
-
-
-
 
 #
