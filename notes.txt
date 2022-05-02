@@ -35,4 +35,6 @@ To check:
 sqlite3 database.db
 .tables
 
-last_insert_rowid() to get the value auto incremented and inserted for inserting into logindetails table
+
+Corey Schafer Youtube video for updating username, and also in the same video, it mentions about
+finding if another user is there with the same user name

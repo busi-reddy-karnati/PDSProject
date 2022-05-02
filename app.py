@@ -11,7 +11,7 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 
 from wtforms import StringField, PasswordField, BooleanField
-from wtforms.validators import InputRequired, Email, Length
+from wtforms.validators import InputRequired, Email, Length, ValidationError
 
 from sqlalchemy import ForeignKey, create_engine
 from sqlalchemy.sql import func
@@ -47,6 +47,11 @@ class SignupForm(FlaskForm):
     city = StringField('City', validators=[InputRequired()])
     state = StringField('State', validators=[InputRequired()])
     country = StringField('Country', validators=[InputRequired()])
+
+    def validate_username(self, username):
+        user = Users.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('Username in Use, try another')
 
 
 class Users(db.Model):
@@ -185,7 +190,4 @@ def signup():
 
 
 if __name__ == '__main__':
-    # Base.metadata.create_all(engine)
     app.run(debug=True)
-
-#
