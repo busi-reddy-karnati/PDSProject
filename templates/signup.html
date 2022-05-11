@@ -1,6 +1,5 @@
-{% extends "bootstrap/base.html" %}
+{% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-
 {% block title %}
 Sign Up
 {% endblock %}
@@ -12,22 +11,47 @@ Sign Up
 
 {% block content %}
 <div class="container">
-  <form class="form-signin" method="POST" action="/signup">
+  <form class="form" method="POST" action="/signup">
 {#      Form here indicates the values being assigned to the entries in the form#}
-      <h2 class="form-signin-heading">SIGNUP</h2>
+      <h2>SIGNUP</h2>
       {{ form.hidden_tag() }}
-      {{ wtf.form_field(form.username) }}
-      {{ wtf.form_field(form.password) }}
-      {{ wtf.form_field(form.firstname) }}
-      {{ wtf.form_field(form.lastname) }}
-      {{ wtf.form_field(form.email) }}
-      {{ wtf.form_field(form.phone) }}
+        <div class="form-row">
+            <div class="col">
+                {{ wtf.form_field(form.username) }}
+            </div>
+            <div class="col">
+                {{ wtf.form_field(form.password) }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                {{ wtf.form_field(form.firstname) }}
+            </div>
+            <div class="col">
+                {{ wtf.form_field(form.lastname) }}
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                {{ wtf.form_field(form.email) }}
+            </div>
+            <div class="col">
+                {{ wtf.form_field(form.phone) }}
+            </div>
+        </div>
+
+{#      {{ wtf.form_field(form.username) }}#}
+{##}
+{#      {{ wtf.form_field(form.password) }}#}
+{#      {{ wtf.form_field(form.firstname) }}#}
+{#      {{ wtf.form_field(form.lastname) }}#}
+{#      {{ wtf.form_field(form.email) }}#}
+{#      {{ wtf.form_field(form.phone) }}#}
       {{ wtf.form_field(form.profile) }}
       {{ wtf.form_field(form.city) }}
       {{ wtf.form_field(form.state) }}
       {{ wtf.form_field(form.country) }}
       <button class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
   </form>
-
-</div> <!-- /container -->
+</div>
 {% endblock %}

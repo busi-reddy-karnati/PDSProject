@@ -1,7 +1,6 @@
 import sqlite3
-from flask import Flask, render_template
+from flask import Flask, render_template, flash, url_for, redirect, session
 from flask_sqlalchemy import SQLAlchemy
-
 from bcrypt import hashpw, checkpw, gensalt
 
 # Bootstrap for the app
@@ -12,6 +11,7 @@ from flask_wtf import FlaskForm
 
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Email, Length, ValidationError
+from wtforms.validators import NumberRange
 
 from sqlalchemy import ForeignKey, create_engine
 from sqlalchemy.sql import func
@@ -31,18 +31,19 @@ Base = declarative_base()
 
 
 class LoginForm(FlaskForm):
-    username = StringField('username', validators=[InputRequired()])
-    password = PasswordField('password', validators=[InputRequired(), Length(min=5, max=80)])
-    remember = BooleanField('remember me')
+    username = StringField('Username', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired(), Length(min=5, max=80)])
+    remember = BooleanField('Remember me')
 
 
 class SignupForm(FlaskForm):
+    # todo: validate phone number
     username = StringField('Username', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired(), Length(min=5, max=80)])
     firstname = StringField('First Name', validators=[InputRequired()])
     lastname = StringField('Last Name', validators=[InputRequired()])
     email = StringField('Email', validators=[InputRequired(), Email(message='Invalid Email')])
-    phone = StringField('Phone', validators=[InputRequired()])
+    phone = StringField('Phone', validators=[InputRequired(), Length(min=10, max=10)])
     profile = StringField('Profile(A short Description)', validators=[InputRequired()])
     city = StringField('City', validators=[InputRequired()])
     state = StringField('State', validators=[InputRequired()])
@@ -119,12 +120,16 @@ class Downvotes(db.Model):
 
 # This if for the landing page
 @app.route('/')
-def hello_world():
+def landing_page():
     return render_template('index.html')
 
 
-#     It knows where to find the templates
+# It knows where to find the templates
 
+
+@app.route('/home', methods = ['GET', 'POST'])
+def home_page():
+    return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -138,7 +143,8 @@ def login():
         if user:
             password = form.password.data
             if checkpw(password.encode('utf-8'), user.passwordhash):
-                # If the password hashes match
+                session['userid'] = user.userid
+                session['username'] = user.username
                 return '<h1>' + "Correct and Matching" + '</h1>'
         # If the hashes don't match or incorrect password
         return '<h1> Incorrect </h1>'
@@ -167,6 +173,8 @@ def signup():
             result = 0
         else:
             result = result[0][0]
+        if not result:
+            result = 0
         userid = result + 1
         new_user_login_details = LoginDetails()
         new_user_login_details.userid = userid
@@ -174,18 +182,11 @@ def signup():
         password = form.password.data
         password_hash = hashpw(password.encode('utf-8'), gensalt())
         new_user_login_details.passwordhash = password_hash
-
-        # todo: commit the login details when doing for user table
-        # todo: See if the hash is working fine
-        # Verifying? Boolean: checkpw(password.encode('utf-8'), hashedpasswd)
-        # todo: generate password hash, write method for verifying the passwords with hashes
-
         db.session.add(new_user)
         db.session.add(new_user_login_details)
         db.session.commit()
-        # todo: Enclose this in a try-except block
-
-        return '<h1>' + form.username.data + form.firstname.data + '</h1>'
+        flash('Signup Successful')
+        return redirect(url_for('login'))
     return render_template('signup.html', form=form)
 
 
