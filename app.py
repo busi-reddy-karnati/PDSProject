@@ -9,7 +9,8 @@ from flask_bootstrap import Bootstrap
 # For Using in signup and logins
 from flask_wtf import FlaskForm
 
-from wtforms import StringField, PasswordField, BooleanField
+from wtforms import StringField, PasswordField, BooleanField, SelectField
+from wtforms import TextAreaField
 from wtforms.validators import InputRequired, Email, Length, ValidationError
 from wtforms.validators import NumberRange
 
@@ -99,6 +100,7 @@ class Answers(db.Model):
     # __tablename__ = 'answers'
     answerid = db.Column(db.Integer, autoincrement=True, primary_key=True)
     userid = db.Column(db.Integer, ForeignKey(Users.userid))
+    answer = db.Column(db.Text)
     questionid = db.Column(db.Integer, ForeignKey(Questions.questionid))
     timeposted = db.Column(db.DateTime, server_default=func.now())
     upvotes = db.Column(db.Integer, default=0)
@@ -117,25 +119,56 @@ class Downvotes(db.Model):
     userid = db.Column(db.Integer, ForeignKey(Users.userid), primary_key=True)
     answerid = db.Column(db.Integer, ForeignKey(Answers.answerid), primary_key=True)
 
+class QuestionForm(FlaskForm):
+    title = TextAreaField('Title', validators=[InputRequired()])
+    question = TextAreaField('Question', validators=[InputRequired()])
+    tag = SelectField('Tag', choices=[], validators=[InputRequired()])
+
+
+
+
+
 
 # This if for the landing page
 @app.route('/')
 def landing_page():
     return render_template('index.html')
 
+@app.route('/home')
+def home():
+    return render_template('index.html')
 
-# It knows where to find the templates
 
-
-@app.route('/home', methods = ['GET', 'POST'])
-def home_page():
-    return render_template('signup.html')
+@app.route('/ask_question', methods=['GET', 'POST'])
+def ask_question():
+    form = QuestionForm()
+    form.tag.choices = [(tag.tagid, tag.tagname) for tag in Tags.query.all()]
+    if form.validate_on_submit():
+        title = form.title.data
+        question = form.question.data
+        tagid = form.tag.data
+        # todo: Because of session information while testing, we are hard coding this, change later
+        userid = session.get('userid')
+        # userid = 12
+        resolved = False
+        new_question = Questions()
+        new_question.question = question
+        new_question.userid = userid
+        new_question.tagid = tagid
+        new_question.title = title
+        new_question.resolved = False
+        db.session.add(new_question)
+        db.session.commit()
+        return redirect(url_for('home'))
+    return render_template('ask_question.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     # We send the LoginForm to login.html
     # After we receive the data, we can take action(Same with Signup)
     form = LoginForm()
+    if session.get('userid'):
+        session.pop('userid')
 
     # If the form is submitted correctly
     if form.validate_on_submit():
@@ -145,8 +178,10 @@ def login():
             if checkpw(password.encode('utf-8'), user.passwordhash):
                 session['userid'] = user.userid
                 session['username'] = user.username
-                return '<h1>' + "Correct and Matching" + '</h1>'
-        # If the hashes don't match or incorrect password
+                return redirect(url_for('home'))
+                # return '<h1>' + "Correct and Matching" + '</h1>'
+        # Instead of this, do an error message
+        # todo: show an error message instead of incorrect
         return '<h1> Incorrect </h1>'
 
     return render_template('login.html', form=form)
@@ -185,7 +220,7 @@ def signup():
         db.session.add(new_user)
         db.session.add(new_user_login_details)
         db.session.commit()
-        flash('Signup Successful')
+        # flash('Signup Successful')
         return redirect(url_for('login'))
     return render_template('signup.html', form=form)
 

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+    <div class="container">
+        <form class="form-signin" method="POST" action="/ask_question">
+        <h2 class="form-signin-heading">Ask a Question</h2>
+          {{ form.hidden_tag() }}
+          {{ wtf.form_field(form.title) }}
+          {{ wtf.form_field(form.question) }}
+          {{ wtf.form_field(form.tag) }}
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Post Question</button>
+      </form>
+    </div> <!-- /container -->
+{% endblock %}
