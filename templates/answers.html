@@ -11,7 +11,17 @@ Login
 
 {% block content %}
     {% for answer in answers %}
-        <div class="container d-flex justify-content-center mt-50 mb-50">
+        <div class="container d-flex justify-content-center mt-10">
+        {% if list_of_upvotes[loop.index-1] %}
+            {% set upvote_icon_class = "fas fa-thumbs-up" %}
+        {% else %}
+            {% set upvote_icon_class = "far fa-thumbs-up" %}
+        {% endif %}
+        {% if list_of_downvotes[loop.index-1] %}
+            {% set downvote_icon_class = "fas fa-thumbs-down" %}
+        {% else %}
+            {% set downvote_icon_class = "far fa-thumbs-down" %}
+        {% endif %}
             <div class="w-100 overflow-auto order-2 order-md-1">
                 <div class="card-group-control card-group-control-right">
                     <div class="card mb-2 w-100">
@@ -29,16 +39,18 @@ Login
                                         </button>
                                     </div>
                                 {% endif %}
-                                {% if not answer.bestanswer %}
+                                {% if not answer.bestanswer and question.userid==session.get('userid')%}
                                     <div class="gap">
-                                        <button type="button" class="btn btn-success btn-sm">
-                                        Select as Best Answer
-                                        </button>
+                                        <a href="best-answer/{{ answer.answerid }}">
+                                            <button type="button" class="btn btn-secondary btn-sm">
+                                                Select as Best Answer
+                                            </button>
+                                        </a>
                                     </div>
                                 {% endif %}
                                 <ul class="list-inline text-nowrap mb-0 ml-auto mt-2 mt-sm-0">
-                                    <li class="list-inline-item"><a href="#" class="text-muted mr-2" data-abc="true"><i class="fa fa-thumbs-up"></i></a> {{ answer.upvotes }}</li>
-                                    <li class="list-inline-item"><a href="#" class="text-muted mr-2" data-abc="true"><i class="fa fa-thumbs-down"></i></a> {{ answer.downvotes }}</li>
+                                    <li class="list-inline-item"><a href="/upvote-answer/{{ answer.answerid }}"><i class="{{ upvote_icon_class }}"></i></a> {{ answer.upvotes }}</li>
+                                    <li class="list-inline-item"><a href="/downvote-answer/{{ answer.answerid }}"><i class="{{ downvote_icon_class }}"></i></a> {{ answer.downvotes }}</li>
                                 </ul>
                             </div>
                         </div>

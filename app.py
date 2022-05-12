@@ -233,7 +233,7 @@ def show_questions():
     usernames = []
     for question in questions:
         if search_string not in question.question:
-            print(index)
+            # print(index)
             questions.pop(index)
         else:
             index += 1
@@ -250,12 +250,84 @@ def show_answers():
     question_id = 1
     answers = Answers.query.filter_by(questionid=question_id).all()
     usernames = []
+    list_of_upvotes = []
+    list_of_downvotes = []
     for answer in answers:
         user = Users.query.filter_by(userid=answer.userid).first()
+        user_upvote = Upvotes.query.filter_by(userid=session.get('userid'), answerid=answer.answerid).first()
+        if user_upvote:
+            list_of_upvotes.append(True)
+        else:
+            list_of_upvotes.append(False)
+        user_downvote = Downvotes.query.filter_by(userid=session.get('userid'), answerid=answer.answerid).first()
+        if user_downvote:
+            list_of_downvotes.append(True)
+        else:
+            list_of_downvotes.append(False)
         usernames.append(user.username)
 
+    question = Questions.query.filter_by(questionid=question_id).first()
     # print(data) data is an array of objects with answerid, userid, questionid and timeposted
-    return render_template('answers.html', answers=answers, usernames=usernames)
+    return render_template('answers.html',
+                           answers=answers,
+                           usernames=usernames,
+                           list_of_upvotes=list_of_upvotes,
+                           list_of_downvotes=list_of_downvotes,
+                           question=question)
+
+
+@app.route('/upvote-answer/<answerid>', methods=['POST', 'GET'])
+def upvote_answer(answerid):
+    answer = Answers.query.filter_by(answerid=answerid).first()
+    upvote_exists = Upvotes.query.filter_by(userid=session.get('userid'), answerid = answerid).first()
+    if upvote_exists:
+        db.session.delete(upvote_exists)
+        answer.upvotes -= 1
+        db.session.commit()
+    else:
+        new_upvote = Upvotes()
+        new_upvote.userid = session.get('userid')
+        new_upvote.answerid = answerid
+        db.session.add(new_upvote)
+        answer.upvotes += 1
+        db.session.commit()
+    return redirect(url_for('show_answers'))
+
+
+@app.route('/downvote-answer/<answerid>', methods=['POST', 'GET'])
+def downvote_answer(answerid):
+    downvote_exists = Downvotes.query.filter_by(userid=session.get('userid'), answerid = answerid).first()
+    answer = Answers.query.filter_by(answerid=answerid).first()
+    if downvote_exists:
+        db.session.delete(downvote_exists)
+        answer.downvotes -= 1
+        db.session.commit()
+    else:
+        new_downvote = Downvotes()
+        new_downvote.userid = session.get('userid')
+        new_downvote.answerid = answerid
+        db.session.add(new_downvote)
+        answer.downvotes += 1
+        db.session.commit()
+    return redirect(url_for('show_answers'))
+
+
+@app.route('/best-answer/<answerid>', methods=['POST', 'GET'])
+def best_answer(answerid):
+    answer = Answers.query.filter_by(answerid=answerid).first()
+    best_answer_before = Answers.query.filter_by(bestanswer=True).first()
+    question = Questions.query.filter_by(questionid=answer.questionid).first()
+    if best_answer_before:
+        # For handling misuse of cases:
+        best_answer_before.bestanswer = False
+        question.resolved = True
+        answer.bestanswer = True
+        db.session.commit()
+    else:
+        question.resolved = True
+        answer.bestanswer = True
+        db.session.commit()
+    return redirect(url_for('show_answers'))
 
 
 if __name__ == '__main__':
