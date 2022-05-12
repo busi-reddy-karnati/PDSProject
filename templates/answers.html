@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}
+Login
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='css/answers.css')}}">
+{% endblock %}
+
+{% block content %}
+    {% for answer in answers %}
+        <div class="container d-flex justify-content-center mt-50 mb-50">
+            <div class="w-100 overflow-auto order-2 order-md-1">
+                <div class="card-group-control card-group-control-right">
+                    <div class="card mb-2 w-100">
+                        <div class="collapse show" >
+                            <div class="card-body">
+                                {{ answer.answer }}
+                            </div>
+                            <div class="card-footer bg-transparent d-sm-flex align-items-sm-center border-top-0 pt-0">
+                                <span class="text-muted">By: </span><span class="text-primary">{{ usernames[loop.index-1] }}</span>
+                                <span class="text-muted">@</span><span class="text-primary">{{ answer.timeposted }}</span>
+                                {% if answer.bestanswer %}
+                                    <div class="gap">
+                                        <button type="button" class="btn btn-success btn-sm">
+                                        Best Answer
+                                        </button>
+                                    </div>
+                                {% endif %}
+                                {% if not answer.bestanswer %}
+                                    <div class="gap">
+                                        <button type="button" class="btn btn-success btn-sm">
+                                        Select as Best Answer
+                                        </button>
+                                    </div>
+                                {% endif %}
+                                <ul class="list-inline text-nowrap mb-0 ml-auto mt-2 mt-sm-0">
+                                    <li class="list-inline-item"><a href="#" class="text-muted mr-2" data-abc="true"><i class="fa fa-thumbs-up"></i></a> {{ answer.upvotes }}</li>
+                                    <li class="list-inline-item"><a href="#" class="text-muted mr-2" data-abc="true"><i class="fa fa-thumbs-down"></i></a> {{ answer.downvotes }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+{% endblock %}

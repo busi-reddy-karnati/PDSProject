@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}
+Login
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='css/answers.css')}}">
+{% endblock %}
+
+{% block content %}
+    {% for question in questions %}
+        <div class="container d-flex justify-content-center mt-50 mb-50">
+            <div class="w-100 overflow-auto order-2 order-md-1">
+                <div class="card-group-control card-group-control-right">
+                    <div class="card mb-2 w-100">
+                        <div class="collapse show" >
+                            <div class="card-body">
+                                {{ question.question }}
+                            </div>
+                            <div class="card-footer bg-transparent d-sm-flex align-items-sm-center border-top-0 pt-0">
+                                <span class="text-muted">By: </span><span class="text-primary">{{ usernames[loop.index-1] }}</span>
+                                <span class="text-muted">@</span><span class="text-primary">{{ question.timeposted }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+{% endblock %}

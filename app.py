@@ -119,20 +119,18 @@ class Downvotes(db.Model):
     userid = db.Column(db.Integer, ForeignKey(Users.userid), primary_key=True)
     answerid = db.Column(db.Integer, ForeignKey(Answers.answerid), primary_key=True)
 
+
 class QuestionForm(FlaskForm):
     title = TextAreaField('Title', validators=[InputRequired()])
     question = TextAreaField('Question', validators=[InputRequired()])
     tag = SelectField('Tag', choices=[], validators=[InputRequired()])
 
 
-
-
-
-
 # This if for the landing page
 @app.route('/')
 def landing_page():
     return render_template('index.html')
+
 
 @app.route('/home')
 def home():
@@ -161,6 +159,7 @@ def ask_question():
         db.session.commit()
         return redirect(url_for('home'))
     return render_template('ask_question.html', form=form)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -223,6 +222,40 @@ def signup():
         # flash('Signup Successful')
         return redirect(url_for('login'))
     return render_template('signup.html', form=form)
+
+
+@app.route('/show_questions', methods=['GET', 'POST'])
+def show_questions():
+    search_string = "What is"
+    # todo: replace the search_string with actual string
+    questions = Questions.query.all()
+    index = 0
+    usernames = []
+    for question in questions:
+        if search_string not in question.question:
+            print(index)
+            questions.pop(index)
+        else:
+            index += 1
+    for question in questions:
+        user = Users.query.filter_by(userid=question.userid).first()
+        usernames.append(user.username)
+    # print(questions)
+    return render_template('questions.html', questions=questions, usernames=usernames)
+
+
+@app.route('/show_answers', methods=['GET', 'POST'])
+def show_answers():
+    # todo: replace the question_id with actual question_id that was asked
+    question_id = 1
+    answers = Answers.query.filter_by(questionid=question_id).all()
+    usernames = []
+    for answer in answers:
+        user = Users.query.filter_by(userid=answer.userid).first()
+        usernames.append(user.username)
+
+    # print(data) data is an array of objects with answerid, userid, questionid and timeposted
+    return render_template('answers.html', answers=answers, usernames=usernames)
 
 
 if __name__ == '__main__':
