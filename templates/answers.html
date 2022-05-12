@@ -1,27 +1,30 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 {% block title %}
-Login
+    Login
 {% endblock %}
 
 {% block styles %}
-{{super()}}
-<link rel="stylesheet" href="{{url_for('.static', filename='css/answers.css')}}">
+    {{super()}}
+    <link rel="stylesheet" href="{{url_for('.static', filename='css/answers.css')}}">
 {% endblock %}
 
 {% block content %}
+    {% if not answers %}
+        <h1 style="color: red">This Question isn't answered. Try Another</h1>
+    {% endif %}
     {% for answer in answers %}
         <div class="container d-flex justify-content-center mt-10">
-        {% if list_of_upvotes[loop.index-1] %}
-            {% set upvote_icon_class = "fas fa-thumbs-up" %}
-        {% else %}
-            {% set upvote_icon_class = "far fa-thumbs-up" %}
-        {% endif %}
-        {% if list_of_downvotes[loop.index-1] %}
-            {% set downvote_icon_class = "fas fa-thumbs-down" %}
-        {% else %}
-            {% set downvote_icon_class = "far fa-thumbs-down" %}
-        {% endif %}
+            {% if list_of_upvotes[loop.index-1] %}
+                {% set upvote_icon_class = "fas fa-thumbs-up" %}
+            {% else %}
+                {% set upvote_icon_class = "far fa-thumbs-up" %}
+            {% endif %}
+            {% if list_of_downvotes[loop.index-1] %}
+                {% set downvote_icon_class = "fas fa-thumbs-down" %}
+            {% else %}
+                {% set downvote_icon_class = "far fa-thumbs-down" %}
+            {% endif %}
             <div class="w-100 overflow-auto order-2 order-md-1">
                 <div class="card-group-control card-group-control-right">
                     <div class="card mb-2 w-100">
@@ -30,18 +33,20 @@ Login
                                 {{ answer.answer }}
                             </div>
                             <div class="card-footer bg-transparent d-sm-flex align-items-sm-center border-top-0 pt-0">
-                                <span class="text-muted">By: </span><span class="text-primary">{{ usernames[loop.index-1] }}</span>
+                                <a href="/profile/{{ answer.userid }}">
+                                    <span class="text-muted">By: </span><span class="text-primary">{{ usernames[loop.index-1] }}</span>
+                                </a>
                                 <span class="text-muted">@</span><span class="text-primary">{{ answer.timeposted }}</span>
                                 {% if answer.bestanswer %}
                                     <div class="gap">
                                         <button type="button" class="btn btn-success btn-sm">
-                                        Best Answer
+                                            Best Answer
                                         </button>
                                     </div>
                                 {% endif %}
                                 {% if not answer.bestanswer and question.userid==session.get('userid')%}
                                     <div class="gap">
-                                        <a href="best-answer/{{ answer.answerid }}">
+                                        <a href="/best-answer/{{ answer.answerid }}">
                                             <button type="button" class="btn btn-secondary btn-sm">
                                                 Select as Best Answer
                                             </button>

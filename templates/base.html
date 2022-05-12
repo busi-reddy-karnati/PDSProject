@@ -10,7 +10,7 @@
     {% block styles %}{% endblock %}
     {% block head %}{% endblock %}
 </head>
-<body>
+<body style="padding-top: 0px">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <a class="navbar-brand" href="/">Empty Stack</a>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -26,7 +26,7 @@
             {% endif %}
             {% if session.get('userid') %}
                 <li class="nav-item active">
-                    <a class="nav-link" href="#">Profile <span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="/profile/{{ session.get('userid') }}">Profile <span class="sr-only">(current)</span></a>
                 </li>
 
                 <li class="nav-item active">
@@ -36,8 +36,15 @@
                 <li class="nav-item active">
                     <a class="nav-link" href="/ask_question">Ask a Question <span class="sr-only">(current)</span></a>
                 </li>
+
+                <li class="nav-item active">
+                    <a class="nav-link" href="/search_question">Search a Question<span class="sr-only">(current)</span></a>
+                </li>
             {% endif %}
         </ul>
+        <div style="margin-left: 600px" class="pull-right">
+
+        </div>
       </div>
     </nav>
     {% block body %}{% endblock %}

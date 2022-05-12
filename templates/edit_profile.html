@@ -11,18 +11,10 @@
 
 {% block content %}
     <div class="container">
-        <form class="form" method="POST" action="/signup">
+        <form class="form" method="POST" action="/edit-profile">
             {#      Form here indicates the values being assigned to the entries in the form#}
-            <h2>SIGNUP</h2>
+            <h2>Update User Profile</h2>
             {{ form.hidden_tag() }}
-            <div class="form-row">
-                <div class="col">
-                    {{ wtf.form_field(form.username) }}
-                </div>
-                <div class="col">
-                    {{ wtf.form_field(form.password) }}
-                </div>
-            </div>
             <div class="form-row">
                 <div class="col">
                     {{ wtf.form_field(form.firstname) }}
@@ -43,7 +35,7 @@
             {{ wtf.form_field(form.city) }}
             {{ wtf.form_field(form.state) }}
             {{ wtf.form_field(form.country) }}
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Confirm Change</button>
         </form>
     </div>
 {% endblock %}

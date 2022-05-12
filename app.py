@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, render_template, flash, url_for, redirect, session
+from flask import Flask, render_template, flash, url_for, redirect, session, request
 from flask_sqlalchemy import SQLAlchemy
 from bcrypt import hashpw, checkpw, gensalt
 
@@ -126,6 +126,21 @@ class QuestionForm(FlaskForm):
     tag = SelectField('Tag', choices=[], validators=[InputRequired()])
 
 
+class UpdateProfileForm(FlaskForm):
+    firstname = StringField('First Name', validators=[InputRequired()])
+    lastname = StringField('Last Name', validators=[InputRequired()])
+    email = StringField('Email', validators=[InputRequired()])
+    phone = StringField('Phone', validators=[InputRequired()])
+    city = StringField('City', validators=[InputRequired()])
+    state = StringField('State', validators=[InputRequired()])
+    country = StringField('Country', validators=[InputRequired()])
+    profile = TextAreaField('Profile', validators=[InputRequired()])
+
+
+class SearchQuestionForm(FlaskForm):
+    search_string = StringField('', validators=[InputRequired()])
+
+
 # This if for the landing page
 @app.route('/')
 def landing_page():
@@ -135,6 +150,39 @@ def landing_page():
 @app.route('/home')
 def home():
     return render_template('index.html')
+
+
+@app.route('/edit-profile', methods=['POST', 'GET'])
+def edit_profile():
+    user = Users.query.filter_by(userid=session.get('userid')).first()
+    form = UpdateProfileForm()
+    if form.validate_on_submit():
+        user.firstname = form.firstname.data
+        user.lastname = form.lastname.data
+        user.email = form.email.data
+        user.phone = form.phone.data
+        user.city = form.city.data
+        user.state = form.state.data
+        user.country = form.country.data
+        user.profile = form.profile.data
+        # print(form.profile.data)
+        db.session.commit()
+        return redirect(url_for('home'))
+    form.firstname.data = user.firstname
+    form.lastname.data = user.lastname
+    form.email.data = user.email
+    form.phone.data = user.phone
+    form.city.data = user.city
+    form.state.data = user.state
+    form.country.data = user.country
+    form.profile.data = user.profile
+    return render_template('edit_profile.html', form=form)
+
+
+@app.route('/profile/<userid>', methods=['POST', 'GET'])
+def profile(userid):
+    user = Users.query.filter_by(userid=userid).first()
+    return render_template('show_profile.html', user=user)
 
 
 @app.route('/ask_question', methods=['GET', 'POST'])
@@ -226,17 +274,19 @@ def signup():
 
 @app.route('/show_questions', methods=['GET', 'POST'])
 def show_questions():
-    search_string = "What is"
     # todo: replace the search_string with actual string
+    search_string = session.get('search_string')
     questions = Questions.query.all()
-    index = 0
+    ind = 0
     usernames = []
-    for question in questions:
-        if search_string not in question.question:
-            # print(index)
-            questions.pop(index)
-        else:
-            index += 1
+    questions = [question for question in questions if search_string in question.question]
+    # for question in questions:
+    #     if search_string not in question.question:
+    #         questions.pop(question)
+    #         # print(index)
+    #         # questions.pop(ind)
+    #     # else:
+    #     #     ind += 1
     for question in questions:
         user = Users.query.filter_by(userid=question.userid).first()
         usernames.append(user.username)
@@ -244,10 +294,45 @@ def show_questions():
     return render_template('questions.html', questions=questions, usernames=usernames)
 
 
-@app.route('/show_answers', methods=['GET', 'POST'])
-def show_answers():
+
+
+@app.route('/show_answers/<question_id>', methods=['GET', 'POST'])
+def show_answers(question_id):
+    session['question_id'] = question_id
     # todo: replace the question_id with actual question_id that was asked
-    question_id = 1
+    question_id = int(question_id)
+    answers = Answers.query.filter_by(questionid=question_id).all()
+    usernames = []
+    list_of_upvotes = []
+    list_of_downvotes = []
+    for answer in answers:
+        user = Users.query.filter_by(userid=answer.userid).first()
+        user_upvote = Upvotes.query.filter_by(userid=session.get('userid'), answerid=answer.answerid).first()
+        if user_upvote:
+            list_of_upvotes.append(True)
+        else:
+            list_of_upvotes.append(False)
+        user_downvote = Downvotes.query.filter_by(userid=session.get('userid'), answerid=answer.answerid).first()
+        if user_downvote:
+            list_of_downvotes.append(True)
+        else:
+            list_of_downvotes.append(False)
+        usernames.append(user.username)
+
+    question = Questions.query.filter_by(questionid=question_id).first()
+    # print(data) data is an array of objects with answerid, userid, questionid and timeposted
+    return render_template('answers.html',
+                           answers=answers,
+                           usernames=usernames,
+                           list_of_upvotes=list_of_upvotes,
+                           list_of_downvotes=list_of_downvotes,
+                           question=question)
+
+
+# This is similar to show_answers but without a get parameter
+@app.route('/show_answers2', methods=['GET', 'POST'])
+def show_answers2():
+    question_id = int(session.get('question_id'))
     answers = Answers.query.filter_by(questionid=question_id).all()
     usernames = []
     list_of_upvotes = []
@@ -278,8 +363,9 @@ def show_answers():
 
 @app.route('/upvote-answer/<answerid>', methods=['POST', 'GET'])
 def upvote_answer(answerid):
+    # todo: increase the rating of the user that gave that answer
     answer = Answers.query.filter_by(answerid=answerid).first()
-    upvote_exists = Upvotes.query.filter_by(userid=session.get('userid'), answerid = answerid).first()
+    upvote_exists = Upvotes.query.filter_by(userid=session.get('userid'), answerid=answerid).first()
     if upvote_exists:
         db.session.delete(upvote_exists)
         answer.upvotes -= 1
@@ -291,12 +377,13 @@ def upvote_answer(answerid):
         db.session.add(new_upvote)
         answer.upvotes += 1
         db.session.commit()
-    return redirect(url_for('show_answers'))
+    return redirect(url_for('show_answers2'))
 
 
 @app.route('/downvote-answer/<answerid>', methods=['POST', 'GET'])
 def downvote_answer(answerid):
-    downvote_exists = Downvotes.query.filter_by(userid=session.get('userid'), answerid = answerid).first()
+    # todo: reduce the rating for the user that gave the question
+    downvote_exists = Downvotes.query.filter_by(userid=session.get('userid'), answerid=answerid).first()
     answer = Answers.query.filter_by(answerid=answerid).first()
     if downvote_exists:
         db.session.delete(downvote_exists)
@@ -309,25 +396,67 @@ def downvote_answer(answerid):
         db.session.add(new_downvote)
         answer.downvotes += 1
         db.session.commit()
-    return redirect(url_for('show_answers'))
+    return redirect(url_for('show_answers2'))
 
 
 @app.route('/best-answer/<answerid>', methods=['POST', 'GET'])
 def best_answer(answerid):
+    # todo: increase the rating of the user by 5 whose answer was selected and reduce if already exists
     answer = Answers.query.filter_by(answerid=answerid).first()
     best_answer_before = Answers.query.filter_by(bestanswer=True).first()
     question = Questions.query.filter_by(questionid=answer.questionid).first()
+    question.resolved = True
     if best_answer_before:
-        # For handling misuse of cases:
+        '''If there is a best answer already, then remove it's best answer status'''
         best_answer_before.bestanswer = False
-        question.resolved = True
-        answer.bestanswer = True
+    answer.bestanswer = True
+    db.session.commit()
+    return redirect(url_for('show_answers2'))
+
+
+@app.route('/search_question', methods=['GET', 'POST'])
+def search_question():
+    form = SearchQuestionForm()
+    if form.validate_on_submit():
+        string_data = form.search_string.data
+        # string_data = string_data.replace(" ", "%20")
+        session['search_string'] = string_data
+        return redirect(url_for('show_questions'))
+    return render_template('search_question.html', form=form)
+
+
+class AnswerForm(FlaskForm):
+    answer = TextAreaField("", validators=[InputRequired()])
+
+
+@app.route('/answer_question2', methods=['GET', 'POST'])
+def answer_question2():
+    question_id = session.get('answer_question_id')
+    form = AnswerForm()
+    question_id = int(question_id)
+    question = Questions.query.filter_by(questionid=question_id).first()
+    if form.validate_on_submit():
+        answer = Answers()
+        answer.upvotes = 0
+        answer.downvotes = 0
+        answer.questionid = question_id
+        answer.userid = session.get('userid')
+        answer.bestanswer = False
+        answer.answer = form.answer.data
+        db.session.add(answer)
         db.session.commit()
-    else:
-        question.resolved = True
-        answer.bestanswer = True
-        db.session.commit()
-    return redirect(url_for('show_answers'))
+        session['question_id'] = question_id
+        return redirect(url_for('show_answers2'))
+    question_text = question.question
+    return render_template('answer_question.html', form=form, question_text=question_text)
+
+
+@app.route('/answer_question/<question_id>', methods=['GET', 'POST'])
+def answer_question(question_id):
+    session['answer_question_id'] = question_id
+    return redirect(url_for('answer_question2'))
+
+
 
 
 if __name__ == '__main__':

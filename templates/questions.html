@@ -10,6 +10,9 @@ Login
 {% endblock %}
 
 {% block content %}
+    {% if not questions %}
+        <h1>Looks like there aren't any questions you are searching for. Try another</h1>
+    {% endif %}
     {% for question in questions %}
         <div class="container d-flex justify-content-center mt-10 rounded">
             <div class="w-100 overflow-auto order-2 order-md-1">
@@ -20,17 +23,23 @@ Login
                                 {{ question.question }}
                             </div>
                             <div class="card-footer bg-transparent d-sm-flex align-items-sm-center border-top-0 pt-0">
-                                <span class="text-muted">By: </span><span class="text-primary">{{ usernames[loop.index-1] }}</span>
+                                <a href="/profile/{{ question.userid }}">
+                                    <span class="text-muted">By: </span><span class="text-primary">{{ usernames[loop.index-1] }}</span>
+                                </a>
                                 <span class="text-muted">@</span><span class="text-primary">{{ question.timeposted }}</span>
                                 <div class="gap">
-                                        <button type="button" class="btn btn-success btn-sm">
-                                        Answer Question
+                                    <a href="/answer_question/{{ question.questionid }}">
+                                        <button type="button" class="btn btn-primary btn-sm">
+                                        Answer the Question
                                         </button>
+                                    </a>
                                 </div>
                                 <div class="gap">
+                                    <a href="/show_answers/{{ question.questionid }}">
                                         <button type="button" class="btn btn-info btn-sm">
                                         Display Answers
                                         </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
