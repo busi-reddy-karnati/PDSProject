@@ -193,7 +193,6 @@ def ask_question():
         title = form.title.data
         question = form.question.data
         tagid = form.tag.data
-        # todo: Because of session information while testing, we are hard coding this, change later
         userid = session.get('userid')
         # userid = 12
         resolved = False
@@ -227,9 +226,8 @@ def login():
                 session['username'] = user.username
                 return redirect(url_for('home'))
                 # return '<h1>' + "Correct and Matching" + '</h1>'
-        # Instead of this, do an error message
-        # todo: show an error message instead of incorrect
-        return '<h1> Incorrect </h1>'
+
+        return render_template('error.html', messages=["Login details wrong. Try again"])
 
     return render_template('login.html', form=form)
 
@@ -274,7 +272,6 @@ def signup():
 
 @app.route('/show_questions', methods=['GET', 'POST'])
 def show_questions():
-    # todo: replace the search_string with actual string
     search_string = session.get('search_string')
     questions = Questions.query.all()
     ind = 0
@@ -299,7 +296,6 @@ def show_questions():
 @app.route('/show_answers/<question_id>', methods=['GET', 'POST'])
 def show_answers(question_id):
     session['question_id'] = question_id
-    # todo: replace the question_id with actual question_id that was asked
     question_id = int(question_id)
     answers = Answers.query.filter_by(questionid=question_id).all()
     usernames = []
@@ -363,12 +359,13 @@ def show_answers2():
 
 @app.route('/upvote-answer/<answerid>', methods=['POST', 'GET'])
 def upvote_answer(answerid):
-    # todo: increase the rating of the user that gave that answer
     answer = Answers.query.filter_by(answerid=answerid).first()
     upvote_exists = Upvotes.query.filter_by(userid=session.get('userid'), answerid=answerid).first()
     if upvote_exists:
         db.session.delete(upvote_exists)
         answer.upvotes -= 1
+        user = Users.query.filter_by(userid=answer.userid).first()
+        user.rating -= 2
         db.session.commit()
     else:
         new_upvote = Upvotes()
@@ -376,24 +373,29 @@ def upvote_answer(answerid):
         new_upvote.answerid = answerid
         db.session.add(new_upvote)
         answer.upvotes += 1
+        user = Users.query.filter_by(userid=answer.userid).first()
+        user.rating += 2
         db.session.commit()
     return redirect(url_for('show_answers2'))
 
 
 @app.route('/downvote-answer/<answerid>', methods=['POST', 'GET'])
 def downvote_answer(answerid):
-    # todo: reduce the rating for the user that gave the question
     downvote_exists = Downvotes.query.filter_by(userid=session.get('userid'), answerid=answerid).first()
     answer = Answers.query.filter_by(answerid=answerid).first()
     if downvote_exists:
         db.session.delete(downvote_exists)
         answer.downvotes -= 1
+        user = Users.query.filter_by(userid=answer.userid).first()
+        user.rating += 2
         db.session.commit()
     else:
         new_downvote = Downvotes()
         new_downvote.userid = session.get('userid')
         new_downvote.answerid = answerid
         db.session.add(new_downvote)
+        user = Users.query.filter_by(userid=answer.userid).first()
+        user.rating -= 2
         answer.downvotes += 1
         db.session.commit()
     return redirect(url_for('show_answers2'))
@@ -401,14 +403,18 @@ def downvote_answer(answerid):
 
 @app.route('/best-answer/<answerid>', methods=['POST', 'GET'])
 def best_answer(answerid):
-    # todo: increase the rating of the user by 5 whose answer was selected and reduce if already exists
     answer = Answers.query.filter_by(answerid=answerid).first()
     best_answer_before = Answers.query.filter_by(bestanswer=True).first()
+
     question = Questions.query.filter_by(questionid=answer.questionid).first()
     question.resolved = True
     if best_answer_before:
         '''If there is a best answer already, then remove it's best answer status'''
         best_answer_before.bestanswer = False
+        old_user = Users.query.filter_by(userid=best_answer_before.userid).first()
+        old_user.rating -= 5
+    new_user = Users.query.filter_by(userid=answer.userid).first()
+    new_user.rating += 5
     answer.bestanswer = True
     db.session.commit()
     return redirect(url_for('show_answers2'))
