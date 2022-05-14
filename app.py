@@ -37,6 +37,12 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember me')
 
 
+class ForgotPasswordForm(FlaskForm):
+    username = StringField('Username', validators=[InputRequired()])
+    oldpassword = PasswordField('Old Password', validators=[InputRequired(), Length(min=5, max=80)])
+    newpassword = PasswordField('New Password', validators=[InputRequired(), Length(min=5, max=80)])
+
+
 class SignupForm(FlaskForm):
     # todo: validate phone number
     username = StringField('Username', validators=[InputRequired()])
@@ -230,6 +236,23 @@ def login():
         return render_template('error.html', messages=["Login details wrong. Try again"])
 
     return render_template('login.html', form=form)
+
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        user = LoginDetails.query.filter_by(username=form.username.data).first()
+        if user:
+            oldpassword = form.oldpassword.data
+            newpassword = form.newpassword.data
+            if checkpw(oldpassword.encode('utf-8'), user.passwordhash):
+                user.passwordhash = hashpw(newpassword.encode('utf-8'), gensalt())
+                db.session.commit()
+                return redirect(url_for('home'))
+        return render_template('error.html', messages=["Details Incorrect. Try again"])
+
+    return render_template('forgot_password.html', form=form)
 
 
 @app.route('/signup', methods=['GET', 'POST'])

@@ -20,6 +20,9 @@ Login
                     <div class="card mb-2 w-100">
                         <div class="collapse show" >
                             <div class="card-body">
+                                {% if question.resolved %}
+                                <span text="Resolved"><i class="fas fa-check-square"></i></span>
+                                {% endif %}
                                 {{ question.question }}
                             </div>
                             <div class="card-footer bg-transparent d-sm-flex align-items-sm-center border-top-0 pt-0">
