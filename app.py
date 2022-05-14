@@ -347,7 +347,7 @@ def show_answers(question_id):
 @app.route('/show_answers2', methods=['GET', 'POST'])
 def show_answers2():
     question_id = int(session.get('question_id'))
-    answers = Answers.query.filter_by(questionid=question_id).all()
+    answers = Answers.query.filter_by(questionid=question_id).order_by(Answers.timeposted.desc()).all()
     usernames = []
     list_of_upvotes = []
     list_of_downvotes = []
