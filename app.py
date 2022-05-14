@@ -296,17 +296,12 @@ def signup():
 @app.route('/show_questions', methods=['GET', 'POST'])
 def show_questions():
     search_string = session.get('search_string')
-    questions = Questions.query.all()
+
+    # Chronologically sorted
+    questions = Questions.query.order_by(Questions.timeposted.desc()).all()
     ind = 0
     usernames = []
     questions = [question for question in questions if search_string in question.question]
-    # for question in questions:
-    #     if search_string not in question.question:
-    #         questions.pop(question)
-    #         # print(index)
-    #         # questions.pop(ind)
-    #     # else:
-    #     #     ind += 1
     for question in questions:
         user = Users.query.filter_by(userid=question.userid).first()
         usernames.append(user.username)
@@ -320,7 +315,7 @@ def show_questions():
 def show_answers(question_id):
     session['question_id'] = question_id
     question_id = int(question_id)
-    answers = Answers.query.filter_by(questionid=question_id).all()
+    answers = Answers.query.filter_by(questionid=question_id).order_by(Answers.timeposted.desc()).all()
     usernames = []
     list_of_upvotes = []
     list_of_downvotes = []
@@ -490,3 +485,5 @@ def answer_question(question_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # todo: Sort the answers :functionality if possible
+    # todo: add description for all the things that are implemented
