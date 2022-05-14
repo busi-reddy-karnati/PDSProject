@@ -156,6 +156,7 @@ def home():
 def edit_profile():
     user = Users.query.filter_by(userid=session.get('userid')).first()
     form = UpdateProfileForm()
+    print(form)
     if form.validate_on_submit():
         user.firstname = form.firstname.data
         user.lastname = form.lastname.data
