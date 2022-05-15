@@ -308,6 +308,18 @@ def show_questions():
     # print(questions)
     return render_template('questions.html', questions=questions, usernames=usernames)
 
+@app.route('/show_qa', methods=['GET', 'POST'])
+def show_qa():
+    # Chronologically sorted
+    questions = Questions.query.order_by(Questions.timeposted.desc()).all()
+    ind = 0
+    usernames = []
+    for question in questions:
+        user = Users.query.filter_by(userid=question.userid).first()
+        usernames.append(user.username)
+    # print(questions)
+    return render_template('questions.html', questions=questions, usernames=usernames)
+
 
 
 

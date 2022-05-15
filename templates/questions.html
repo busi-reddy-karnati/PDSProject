@@ -29,7 +29,7 @@ Login
                                 <a href="/profile/{{ question.userid }}">
                                     <span class="text-muted">By: </span><span class="text-primary">{{ usernames[loop.index-1] }}</span>
                                 </a>
-                                <span class="text-muted">@</span><span class="text-primary">{{ question.timeposted }}</span>
+                                <span class="text-muted">@</span><span class="text-primary">{{ question.timeposted.strftime('%m/%d/%Y, %H:%M:%S') }}</span>
                                 <div class="gap">
                                     <a href="/answer_question/{{ question.questionid }}">
                                         <button type="button" class="btn btn-primary btn-sm">
